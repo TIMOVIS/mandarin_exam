@@ -1,10 +1,9 @@
 
-import { GoogleGenAI, Type } from "@google/genai";
 import { Question, QuestionMode, Skill } from "../types";
 
-// For client-side: Use VITE_GEMINI_API_KEY (exposed to browser)
-// For server-side Netlify functions: Use GEMINI_API_KEY
-const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY || "" });
+// All Gemini API calls are now routed through the Netlify function
+// This keeps the API key server-side and prevents it from being exposed in the build
+const NETLIFY_FUNCTION_URL = '/.netlify/functions/gemini';
 
 /**
  * Bulk generates diagnostic questions in a single LLM pass.
@@ -52,38 +51,23 @@ export const generateBulkQuestions = async (
   `;
 
   try {
-    const response = await ai.models.generateContent({
-      model,
-      contents: [{ role: 'user', parts: [{ text: prompt }] }],
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            questions: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  content: { type: Type.STRING },
-                  audioScript: { type: Type.STRING },
-                  options: { type: Type.ARRAY, items: { type: Type.STRING } },
-                  correctAnswer: { type: Type.STRING },
-                  mode: { type: Type.STRING },
-                  timeLimit: { type: Type.NUMBER },
-                  skill: { type: Type.STRING },
-                  difficulty: { type: Type.STRING },
-                  stage: { type: Type.NUMBER }
-                },
-                required: ["content", "correctAnswer", "mode", "timeLimit", "skill", "difficulty", "stage"]
-              }
-            }
-          }
-        }
-      }
+    const response = await fetch(NETLIFY_FUNCTION_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        action: 'generateBulk',
+        payload: { prompt }
+      })
     });
 
-    const data = JSON.parse(response.text || '{"questions":[]}');
+    if (!response.ok) {
+      throw new Error(`Netlify function error: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    const data = JSON.parse(result.text || '{"questions":[]}');
     
     return data.questions.map((q: any) => ({
       id: crypto.randomUUID(),
@@ -138,18 +122,30 @@ export const evaluateStudentResponse = async (
   `;
 
   try {
-    const parts: any[] = [{ text: promptText }];
-    if (isMultimodal) {
-      parts.push({ inlineData: { data: (answer as any).data, mimeType: (answer as any).mimeType } });
-    }
-
-    const response = await ai.models.generateContent({
-      model,
-      contents: [{ role: 'user', parts }],
-      config: { responseMimeType: "application/json" }
+    const response = await fetch(NETLIFY_FUNCTION_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        action: 'evaluate',
+        payload: {
+          promptText,
+          isMultimodal,
+          inlineData: isMultimodal ? { 
+            data: (answer as any).data, 
+            mimeType: (answer as any).mimeType 
+          } : undefined
+        }
+      })
     });
 
-    return JSON.parse(response.text || '{}');
+    if (!response.ok) {
+      throw new Error(`Netlify function error: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    return JSON.parse(result.text || '{}');
   } catch (e) {
     console.error(e);
     return { isCorrect: false, score: 0, feedback: "Evaluation failed due to a connection error." };

@@ -38,15 +38,14 @@ These must be prefixed with `VITE_` to be accessible in the React app:
 - `VITE_SUPABASE_ANON_KEY` - Your Supabase anonymous/public key
   - Example format: `sb_publishable_...` or a JWT token starting with `eyJ...`
   - Get this from your Supabase project settings
-  
-- `VITE_GEMINI_API_KEY` - Your Google Gemini API key
-  - Get this from [Google AI Studio](https://makersuite.google.com/app/apikey)
 
 #### Server-side Variables (Netlify functions only)
 These are only accessible in serverless functions:
 
-- `GEMINI_API_KEY` - Your Google Gemini API key (same as above, but without VITE_ prefix)
+- `GEMINI_API_KEY` - Your Google Gemini API key
+  - Get this from [Google AI Studio](https://makersuite.google.com/app/apikey)
   - This is used by the Netlify function at `netlify/functions/gemini.ts`
+  - **Important:** All Gemini API calls are routed through the server-side function to keep the API key secure
 
 ### 3. Deploy
 
@@ -65,7 +64,6 @@ For local development, create a `.env` file in the root directory:
 ```env
 VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
-VITE_GEMINI_API_KEY=your-gemini-api-key
 GEMINI_API_KEY=your-gemini-api-key
 ```
 
@@ -77,8 +75,7 @@ GEMINI_API_KEY=your-gemini-api-key
 |----------|------|-------------|
 | `VITE_SUPABASE_URL` | Client | Supabase project URL |
 | `VITE_SUPABASE_ANON_KEY` | Client | Supabase anonymous/public key |
-| `VITE_GEMINI_API_KEY` | Client | Google Gemini API key (for client-side AI calls) |
-| `GEMINI_API_KEY` | Server | Google Gemini API key (for Netlify functions) |
+| `GEMINI_API_KEY` | Server | Google Gemini API key (for Netlify functions - all AI calls are server-side) |
 
 ## Troubleshooting
 
@@ -98,9 +95,10 @@ GEMINI_API_KEY=your-gemini-api-key
 - Ensure your Supabase project allows connections from your Netlify domain
 
 ### AI API Issues
-- Verify both `VITE_GEMINI_API_KEY` and `GEMINI_API_KEY` are set
+- Verify `GEMINI_API_KEY` is set in Netlify (server-side only)
 - Check that your API key is valid and has proper permissions
 - Review Netlify function logs for server-side errors
+- Ensure the Netlify function is accessible at `/.netlify/functions/gemini`
 
 ## Security Notes
 

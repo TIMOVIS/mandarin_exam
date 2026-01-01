@@ -7,7 +7,7 @@ export default defineConfig(({ mode }) => {
     // For Netlify, set these in the Netlify dashboard:
     // - VITE_SUPABASE_URL
     // - VITE_SUPABASE_ANON_KEY
-    // - VITE_GEMINI_API_KEY
+    // Note: GEMINI_API_KEY is server-side only (no VITE_ prefix)
     const env = loadEnv(mode, '.', '');
     return {
       server: {
