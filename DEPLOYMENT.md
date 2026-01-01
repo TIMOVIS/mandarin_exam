@@ -36,7 +36,8 @@ These must be prefixed with `VITE_` to be accessible in the React app:
   - Example: `https://your-project.supabase.co`
   
 - `VITE_SUPABASE_ANON_KEY` - Your Supabase anonymous/public key
-  - Example: `sb_publishable_...` or `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`
+  - Example format: `sb_publishable_...` or a JWT token starting with `eyJ...`
+  - Get this from your Supabase project settings
   
 - `VITE_GEMINI_API_KEY` - Your Google Gemini API key
   - Get this from [Google AI Studio](https://makersuite.google.com/app/apikey)
