@@ -1,0 +1,7 @@
+{
+  "name": "Mandarin Exam Practice",
+  "description": "An AI-powered adaptive learning platform for Year 9 students preparing for Cambridge IGCSE Mandarin (0547). Features baselining, multi-modal testing, and a visual progression roadmap.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
