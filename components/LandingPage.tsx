@@ -61,9 +61,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ onJoin, initialRole }) => {
         setName('');
         setAge('');
         setComments('');
-      } catch (err) {
+      } catch (err: any) {
         console.error("Failed to add student:", err);
-        alert("Student name might already exist.");
+        if (err?.message?.includes("already exists")) {
+          alert("Student name might already exist.");
+        } else {
+          alert("Failed to add student. Please check your connection and try again.");
+        }
       }
     }
   };
